@@ -35,4 +35,4 @@ jobs:
       - run: gradle shadowJar
 
       - store_artifacts:
-          path: ~/repo/build/libs/*.jar
+          path: ~/repo/build/libs/PatreonProxy.kt-1.0-SNAPSHOT-all.jar

@@ -1,4 +1,7 @@
 .gradle
 .idea
 *.iml
+build
+out
+target
 /config.json

@@ -7,7 +7,7 @@ plugins {
 group = "net.ticketsbot.patreonproxy"
 version = "1.0-SNAPSHOT"
 
-var ktor_version = "1.3.2"
+var ktorVersion = "1.3.2"
 
 repositories {
     mavenCentral()
@@ -18,9 +18,9 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.patreon:patreon:0.4.2")
     implementation("org.json:json:20190722")
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("io.ktor:ktor-jackson:$ktor_version")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
 }
 
 tasks {

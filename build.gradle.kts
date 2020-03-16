@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm") version "1.3.61"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
+    application
 }
 
 group = "net.ticketsbot.patreonproxy"
@@ -28,4 +30,8 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+application {
+    mainClassName = "net.ticketsbot.patreonproxy.mainKt"
 }

@@ -33,5 +33,5 @@ tasks {
 }
 
 application {
-    mainClassName = "net.ticketsbot.patreonproxy.mainKt"
+    mainClassName = "net.ticketsbot.patreonproxy.MainKt"
 }

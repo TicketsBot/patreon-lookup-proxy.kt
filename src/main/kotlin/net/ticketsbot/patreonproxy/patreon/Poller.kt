@@ -2,6 +2,8 @@ package net.ticketsbot.patreonproxy.patreon
 
 import com.patreon.PatreonAPI
 import net.ticketsbot.patreonproxy.config.JSONConfiguration
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.write
 
 class Poller(val api: PatreonAPI, val config: JSONConfiguration) : Runnable {
 
@@ -22,6 +24,8 @@ class Poller(val api: PatreonAPI, val config: JSONConfiguration) : Runnable {
             }
             .toMap()
 
-        PatronManager.patrons = patrons
+        PatronManager.lock.write {
+            PatronManager.patrons = ConcurrentHashMap(patrons)
+        }
     }
 }

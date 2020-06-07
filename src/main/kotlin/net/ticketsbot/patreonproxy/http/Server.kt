@@ -15,6 +15,7 @@ import io.ktor.server.netty.Netty
 import net.ticketsbot.patreonproxy.config.JSONConfiguration
 import net.ticketsbot.patreonproxy.patreon.PatronManager
 import java.util.*
+import kotlin.concurrent.read
 
 class Server(val config: JSONConfiguration) : Runnable {
 
@@ -50,7 +51,10 @@ private fun getModule(config: JSONConfiguration): Application.() -> Unit {
 
                 val id = call.request.queryParameters["id"]
 
-                val tier = PatronManager.patrons[id]
+                val tier = PatronManager.lock.read {
+                    PatronManager.patrons[id]
+                }
+
                 val isPremium = tier != null
 
                 val res = mutableMapOf<String, Any>("premium" to isPremium)

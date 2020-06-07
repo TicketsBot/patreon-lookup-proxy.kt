@@ -1,5 +1,7 @@
 package net.ticketsbot.patreonproxy.patreon
 
+import java.util.concurrent.ConcurrentHashMap
+
 object PatronManager {
-    var patrons = mapOf<String, Tier>()
+    var patrons = ConcurrentHashMap<String, Tier>()
 }

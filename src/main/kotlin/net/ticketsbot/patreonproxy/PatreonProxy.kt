@@ -23,7 +23,7 @@ class PatreonProxy : Runnable {
         var poller = Poller(PatreonAPI(tokens.accessToken), config.config)
 
         val server = Server(config.config)
-        server.run()
+        var serverStarted = false // We want to do an initial poll before starting the server to prevent serving results before we have received data
 
         while(true) {
             if (System.currentTimeMillis() > refreshAfter) {
@@ -37,6 +37,12 @@ class PatreonProxy : Runnable {
 
             try {
                 poller.run()
+
+                if (!serverStarted) {
+                    serverStarted = true
+                    server.run()
+                }
+
                 Thread.sleep(15 * 1000)
             } catch(ex: Exception) {
                 ex.printStackTrace()

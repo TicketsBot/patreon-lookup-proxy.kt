@@ -1,9 +1,9 @@
 package net.ticketsbot.patreonproxy.patreon
 
 import com.patreon.PatreonAPI
-import net.ticketsbot.patreonproxy.config.config
+import net.ticketsbot.patreonproxy.config.JSONConfiguration
 
-class Poller(val api: PatreonAPI) : Runnable {
+class Poller(val api: PatreonAPI, val config: JSONConfiguration) : Runnable {
 
     override fun run() {
         val campaignId = config.getGenericOrNull<String>("patreon.campaignid") ?: return
@@ -16,7 +16,6 @@ class Poller(val api: PatreonAPI) : Runnable {
             .filterNot { pledge -> pledge.reward?.id == null } // Make sure user has a tier
             .mapNotNull { pledge ->
                 val discordId = pledge.patron.socialConnections.discord.user_id
-                println(discordId)
                 val tier = Tier.getTierByPatreonId(pledge.reward.id.toIntOrNull())
                     ?: return@mapNotNull null
                 discordId to tier

@@ -33,4 +33,11 @@ abstract class JSON(private val folder: File? = null) {
         writer.close()
         `is`.close()
     }
+
+    @Throws(IOException::class)
+    fun save() {
+        cfile.bufferedWriter().use { writer ->
+            writer.write(config.getRawJSON(2))
+        }
+    }
 }

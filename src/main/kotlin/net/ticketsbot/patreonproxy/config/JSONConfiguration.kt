@@ -39,7 +39,7 @@ class JSONConfiguration(val obj: JSONObject) {
         return null
     }
 
-    fun getRawJSON(): String = obj.toString()
+    fun getRawJSON(indentFactor: Int = 0): String = obj.toString(indentFactor)
 
     fun set(key: String, data: Any) {
         val parts = key.split(".")

@@ -1,6 +1,11 @@
 {
   "oauth": {
-    "accesstoken": ""
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "",
+    "tokens": {
+      "refresh_token": ""
+    }
   },
   "patreon": {
     "campaignid": ""

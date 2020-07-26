@@ -4,4 +4,4 @@
 build
 out
 target
-/config.json
+/tokens.json

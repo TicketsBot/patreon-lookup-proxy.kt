@@ -20,8 +20,8 @@ import kotlin.concurrent.read
 class Server(val config: JSONConfiguration) : Runnable {
 
     override fun run() {
-        val host = config.getGeneric("server.host", "0.0.0.0")
-        val port = config.getGeneric("server.port", 80)
+        val host = System.getenv("SERVER_HOST") ?: "0.0.0.0"
+        val port = System.getenv("SERVER_PORT")?.toIntOrNull() ?: 8080
 
         val server = embeddedServer(Netty, port, host, module = getModule(config))
         server.start(false)

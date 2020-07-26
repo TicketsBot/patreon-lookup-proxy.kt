@@ -2,9 +2,7 @@ package net.ticketsbot.patreonproxy
 
 import com.patreon.PatreonAPI
 import com.patreon.PatreonOAuth
-import net.ticketsbot.patreonproxy.config.Config
-import net.ticketsbot.patreonproxy.config.JSON
-import net.ticketsbot.patreonproxy.config.JSONConfiguration
+import net.ticketsbot.patreonproxy.config.Tokens
 import net.ticketsbot.patreonproxy.http.Server
 import net.ticketsbot.patreonproxy.patreon.Poller
 import java.lang.Exception
@@ -20,7 +18,7 @@ class PatreonProxy : Runnable {
                 TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong()) -
                 TimeUnit.DAYS.toMillis(1)
 
-        var poller = Poller(PatreonAPI(tokens.accessToken), config.config)
+        var poller = Poller(PatreonAPI(tokens.accessToken))
 
         val server = Server(config.config)
         var serverStarted = false // We want to do an initial poll before starting the server to prevent serving results before we have received data
@@ -28,7 +26,7 @@ class PatreonProxy : Runnable {
         while(true) {
             if (System.currentTimeMillis() > refreshAfter) {
                 tokens = handleOauth(config)
-                poller = Poller(PatreonAPI(tokens.accessToken), config.config)
+                poller = Poller(PatreonAPI(tokens.accessToken))
 
                 refreshAfter = System.currentTimeMillis() +
                         TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong()) -
@@ -50,13 +48,13 @@ class PatreonProxy : Runnable {
         }
     }
 
-    private fun handleOauth(config: JSON): PatreonOAuth.TokensResponse {
+    private fun handleOauth(tokens: Tokens): PatreonOAuth.TokensResponse {
         fun loadExisting(): PatreonOAuth.TokensResponse? {
-            val expires = config.config.getGenericOrNull<Long>("oauth.tokens.expires") ?: return null
+            val expires = tokens.expires ?: return null
             if (expires - TimeUnit.DAYS.toMillis(1) > System.currentTimeMillis()) {
                 return PatreonOAuth.TokensResponse(
-                    config.config.getGenericOrNull<String>("oauth.tokens.access_token") ?: return null,
-                    config.config.getGenericOrNull<String>("oauth.tokens.refresh_token") ?: return null,
+                    tokens.accessToken ?: return null,
+                    tokens.refreshToken ?: return null,
                     TimeUnit.MILLISECONDS.toSeconds(expires - System.currentTimeMillis()).toInt(),
                     "",
                     ""
@@ -71,24 +69,24 @@ class PatreonProxy : Runnable {
         }
 
         val oauth = PatreonOAuth(
-            config.config.getGenericOrNull<String>("oauth.client_id"),
-            config.config.getGenericOrNull<String>("oauth.client_secret"),
-            config.config.getGenericOrNull<String>("oauth.redirect_uri")
+            System.getenv("PATREON_CLIENT_ID"),
+            System.getenv("PATREON_CLIENT_SECRET"),
+            System.getenv("PATREON_REDIRECT_URI")
         )
 
-        val tokens = oauth.refreshTokens(config.config.getGenericOrNull<String>("oauth.tokens.refresh_token"))
-        val expiry = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong())
+        val newTokens = oauth.refreshTokens(tokens.refreshToken)
+        val expiry = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tokens.expires.toLong())
 
-        config.config.set("oauth.tokens.refresh_token", tokens.refreshToken)
-        config.config.set("oauth.tokens.access_token", tokens.accessToken)
-        config.config.set("oauth.tokens.expires", expiry)
-        config.save()
+        tokens.config.set("refresh_token", newTokens.refreshToken)
+        tokens.config.set("access_token", newTokens.accessToken)
+        tokens.config.set("expires", expiry)
+        tokens.save()
 
-        return tokens
+        return newTokens
     }
 
-    private fun loadConfig(): JSON {
-        val cfg = Config()
+    private fun loadConfig(): Tokens {
+        val cfg = Tokens()
         cfg.load()
         return cfg
     }

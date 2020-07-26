@@ -1,14 +1,13 @@
 package net.ticketsbot.patreonproxy.patreon
 
 import com.patreon.PatreonAPI
-import net.ticketsbot.patreonproxy.config.JSONConfiguration
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.write
 
-class Poller(val api: PatreonAPI, val config: JSONConfiguration) : Runnable {
+class Poller(val api: PatreonAPI) : Runnable {
 
     override fun run() {
-        val campaignId = config.getGenericOrNull<String>("patreon.campaignid") ?: return
+        val campaignId = System.getenv("PATREON_CAMPAIGN_ID") ?: return
 
         val pledges = api.fetchAllPledges(campaignId)
 

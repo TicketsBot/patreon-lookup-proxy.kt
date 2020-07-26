@@ -75,7 +75,7 @@ class PatreonProxy : Runnable {
         )
 
         val newTokens = oauth.refreshTokens(tokens.refreshToken)
-        val expiry = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tokens.expires.toLong())
+        val expiry = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(newTokens.expiresIn.toLong())
 
         tokens.config.set("refresh_token", newTokens.refreshToken)
         tokens.config.set("access_token", newTokens.accessToken)

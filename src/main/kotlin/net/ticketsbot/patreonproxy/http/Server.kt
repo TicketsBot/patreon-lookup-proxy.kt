@@ -42,9 +42,9 @@ private fun getModule(config: JSONConfiguration): Application.() -> Unit {
 
             get("/ispremium") {
                 val key = call.request.queryParameters["key"]
+                val serverKey = System.getenv("SERVER_KEY")
 
-                // Default to a difficult to guess PWD in case of error
-                if(key != config.getGeneric("server.key", UUID.randomUUID().toString())) {
+                if(serverKey == null || serverKey != key) {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Invalid secret key"))
                     return@get
                 }

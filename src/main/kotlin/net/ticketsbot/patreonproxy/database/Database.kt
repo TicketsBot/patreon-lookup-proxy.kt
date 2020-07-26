@@ -34,7 +34,7 @@ object Database {
     fun getTokens(clientId: String = getClientId()): Tokens? {
         val query = """
             SELECT
-                "access_token", "refresh_token, "expires"
+                "access_token", "refresh_token", "expires"
             FROM
                 patreon_keys
             WHERE

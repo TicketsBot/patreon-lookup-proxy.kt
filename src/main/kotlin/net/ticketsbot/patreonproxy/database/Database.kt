@@ -9,7 +9,11 @@ object Database {
     private lateinit var conn: Connection
 
     fun connect() {
-        conn = DriverManager.getConnection(System.getenv("DATABASE_URI"))
+        conn = DriverManager.getConnection(
+            System.getenv("DATABASE_URI"),
+            System.getenv("DATABASE_USER"),
+            System.getenv("DATABASE_PASSWORD")
+        )
     }
 
     fun createSchema() {

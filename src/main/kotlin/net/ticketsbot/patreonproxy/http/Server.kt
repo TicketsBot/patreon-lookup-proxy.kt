@@ -12,23 +12,21 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import net.ticketsbot.patreonproxy.config.JSONConfiguration
 import net.ticketsbot.patreonproxy.patreon.PatronManager
-import java.util.*
 import kotlin.concurrent.read
 
-class Server(val config: JSONConfiguration) : Runnable {
+class Server : Runnable {
 
     override fun run() {
         val host = System.getenv("SERVER_HOST") ?: "0.0.0.0"
         val port = System.getenv("SERVER_PORT")?.toIntOrNull() ?: 8080
 
-        val server = embeddedServer(Netty, port, host, module = getModule(config))
+        val server = embeddedServer(Netty, port, host, module = getModule())
         server.start(false)
     }
 }
 
-private fun getModule(config: JSONConfiguration): Application.() -> Unit {
+private fun getModule(): Application.() -> Unit {
     return fun Application.() {
         install(DefaultHeaders)
         install(ContentNegotiation) {

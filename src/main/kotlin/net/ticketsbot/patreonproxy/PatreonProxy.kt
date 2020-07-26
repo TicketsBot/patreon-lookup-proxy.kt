@@ -2,35 +2,57 @@ package net.ticketsbot.patreonproxy
 
 import com.patreon.PatreonAPI
 import com.patreon.PatreonOAuth
-import net.ticketsbot.patreonproxy.config.Tokens
+import net.ticketsbot.patreonproxy.database.Database
 import net.ticketsbot.patreonproxy.http.Server
 import net.ticketsbot.patreonproxy.patreon.Poller
 import java.lang.Exception
+import java.sql.Timestamp
 import java.util.concurrent.TimeUnit
+import kotlin.math.exp
+import kotlin.system.exitProcess
 
 class PatreonProxy : Runnable {
 
     override fun run() {
-        val config = loadConfig()
+        Database.connect()
+        Database.createSchema()
 
-        var tokens = handleOauth(config)
+        var currentTokens = Database.getTokens()
+        if (currentTokens == null) {
+            println("getTokens returned null")
+            exitProcess(-1)
+        }
+
+        var tokens = handleOauth(currentTokens)
         var refreshAfter = System.currentTimeMillis() +
                 TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong()) -
                 TimeUnit.DAYS.toMillis(1)
 
         var poller = Poller(PatreonAPI(tokens.accessToken))
 
-        val server = Server(config.config)
+        val server = Server()
         var serverStarted = false // We want to do an initial poll before starting the server to prevent serving results before we have received data
 
         while(true) {
             if (System.currentTimeMillis() > refreshAfter) {
-                tokens = handleOauth(config)
-                poller = Poller(PatreonAPI(tokens.accessToken))
+                try {
+                    currentTokens = Database.getTokens()
+                    if(currentTokens == null) {
+                        println("getTokens returned null, continuing")
+                        Thread.sleep(15 * 1000)
+                        continue
+                    }
 
-                refreshAfter = System.currentTimeMillis() +
-                        TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong()) -
-                        TimeUnit.DAYS.toMillis(1)
+                    tokens = handleOauth(currentTokens)
+                    poller = Poller(PatreonAPI(tokens.accessToken))
+
+                    refreshAfter = System.currentTimeMillis() +
+                            TimeUnit.SECONDS.toMillis(tokens.expiresIn.toLong()) -
+                            TimeUnit.DAYS.toMillis(1)
+                } catch(ex: Exception) {
+                    Thread.sleep(15 * 1000)
+                    continue
+                }
             }
 
             try {
@@ -48,14 +70,13 @@ class PatreonProxy : Runnable {
         }
     }
 
-    private fun handleOauth(tokens: Tokens): PatreonOAuth.TokensResponse {
+    private fun handleOauth(tokens: Database.Tokens): PatreonOAuth.TokensResponse {
         fun loadExisting(): PatreonOAuth.TokensResponse? {
-            val expires = tokens.expires ?: return null
-            if (expires - TimeUnit.DAYS.toMillis(1) > System.currentTimeMillis()) {
+            if (tokens.expires.toInstant().minusMillis(TimeUnit.DAYS.toMillis(1)).toEpochMilli() > System.currentTimeMillis()) {
                 return PatreonOAuth.TokensResponse(
-                    tokens.accessToken ?: return null,
-                    tokens.refreshToken ?: return null,
-                    TimeUnit.MILLISECONDS.toSeconds(expires - System.currentTimeMillis()).toInt(),
+                    tokens.accessToken,
+                    tokens.refreshToken,
+                    TimeUnit.MILLISECONDS.toSeconds(tokens.expires.toInstant().minusMillis(System.currentTimeMillis()).toEpochMilli()).toInt(),
                     "",
                     ""
                 )
@@ -77,17 +98,10 @@ class PatreonProxy : Runnable {
         val newTokens = oauth.refreshTokens(tokens.refreshToken)
         val expiry = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(newTokens.expiresIn.toLong())
 
-        tokens.config.set("refresh_token", newTokens.refreshToken)
-        tokens.config.set("access_token", newTokens.accessToken)
-        tokens.config.set("expires", expiry)
-        tokens.save()
+        Database.updateTokens(tokens = Database.Tokens(
+            newTokens.accessToken, newTokens.refreshToken, Timestamp(expiry)
+        ))
 
         return newTokens
-    }
-
-    private fun loadConfig(): Tokens {
-        val cfg = Tokens()
-        cfg.load()
-        return cfg
     }
 }

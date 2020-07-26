@@ -17,7 +17,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.patreon:patreon:0.4.2")
-    implementation("org.json:json:20190722")
+    implementation("org.postgresql:postgresql:42.2.14")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
